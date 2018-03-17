@@ -3,6 +3,7 @@ package techkids.vn.shortstory.databases;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,8 @@ import java.util.List;
  * Created by ADMIN on 3/14/2018.
  */
 
-public class DatabaseHandle {   //class kiểm soát function trong database
+public class DatabaseHandle {
+    private static final String TAG = DatabaseHandle.class.toString();   //class kiểm soát function trong database
     private static DatabaseHandle instance; //tạo singleton cho DatabaseHandle
 
     private MyDatabase myDatabase;
@@ -48,6 +50,7 @@ public class DatabaseHandle {   //class kiểm soát function trong database
             storyModelList.add(storyModel);
             cursor.moveToNext();
         }
+        cursor.close();
         return storyModelList;
     }
 }
