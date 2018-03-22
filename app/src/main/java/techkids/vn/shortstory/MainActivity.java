@@ -5,32 +5,30 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import techkids.vn.shortstory.adapters.RecycleViewAdapter;
-import techkids.vn.shortstory.databases.DatabaseHandle;
-import techkids.vn.shortstory.databases.StoryModel;
+import techkids.vn.shortstory.features.RecycleViewMainActivity;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.toString();
-    private RecyclerView recyclerView;
-    private RecycleViewAdapter recycleViewAdapter;
     private ActionBar actionBar;
-
+    private MenuItem abMenuSearch, abMenuSort;  //define menu item - hide it
     private DrawerLayout drawerLayout;
+
+    private RecycleViewMainActivity recycleViewMainActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +36,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = findViewById(R.id.coordinator_toolbar);
+        recycleViewMainActivity = new RecycleViewMainActivity(this);
         setSupportActionBar(toolbar);
         actionBar = getSupportActionBar();
-
         init();
     }
 
@@ -86,25 +84,16 @@ public class MainActivity extends AppCompatActivity {
             setTextColorForMenuItem(navigationView.getMenu().getItem(i), R.color.text_primna);
     }
 
-    private void checkItemChecked(NavigationView navigationView){
-            if (navigationView.getMenu().getItem(0).isChecked()){
+    private void checkItemChecked(NavigationView navigationView) {
+        if (navigationView.getMenu().getItem(0).isChecked()) {
             setTextColorForMenuItem(navigationView.getMenu().getItem(0), R.color.nav_all_books);
-            }
+        }
     }
 
 
     private void init() {
         setupNavigationDrawer();
-
-        //init recycleview displayed items in LinenearLayout mode
-        recyclerView = findViewById(R.id.rv_main_list_story);
-        DividerItemDecoration decoration = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
-        recyclerView.addItemDecoration(decoration);         //add a line between items
-        recycleViewAdapter = new RecycleViewAdapter(DatabaseHandle.getDatabaseHandle(this).getListStoryModel());
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(recycleViewAdapter);
+        recycleViewMainActivity.setupLinearLayoutRecyclerView(); //khỏi tạo recycle view
 
         //INIT COLLAPSING TOOLBAR
         final CollapsingToolbarLayout collapsingToolbarLayout = findViewById(R.id.coordinator_collapsing_toolbar);
@@ -130,16 +119,41 @@ public class MainActivity extends AppCompatActivity {
                     isShow = false;
                 }
                 actionBar.setDisplayHomeAsUpEnabled(isShow);
+                if (abMenuSort!=null && abMenuSearch != null){
+                    abMenuSearch.setVisible(isShow);
+                    abMenuSort.setVisible(isShow);
+                }
                 actionBar.setHomeAsUpIndicator(R.drawable.ic_view_headline_24dp);
+
+                Log.d(TAG, "onOffsetChanged: bật tắt View");
             }
         });
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu_appbar, menu);
+        Log.d(TAG, "onCreateOptionsMenu: Đã khởi tạo Menu");
+        abMenuSearch = menu.findItem(R.id.ab_menu_search);
+        abMenuSort = menu.findItem(R.id.ab_menu_sort);
+        abMenuSearch.setVisible(false);      //ẩn item menu khi chưa kéo hết Appbar
+        abMenuSort.setVisible(false);
+        return true;
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case android.R.id.home:
                 drawerLayout.openDrawer(GravityCompat.START);
+                return true;
+            case R.id.ab_menu_search:
+                Snackbar.make(findViewById(R.id.drawer_layout), "Feature search updating", Snackbar.LENGTH_SHORT).show();
+                return true;
+            case R.id.ab_menu_sort:
+                recycleViewMainActivity.setupGridLayoutRecyclerView();
+                Snackbar.make(findViewById(R.id.drawer_layout), "Feature sort updating", Snackbar.LENGTH_SHORT).show();
                 return true;
         }
         return super.onOptionsItemSelected(item);

@@ -24,7 +24,6 @@ public class RecycleViewAdapter extends RecyclerView.Adapter<RecycleViewAdapter.
 
     public RecycleViewAdapter(List<StoryModel> models){
         this.models = models;
-        Log.d(TAG, "RecycleViewAdapter: Da khoi tao");
     }
 
     @Override
